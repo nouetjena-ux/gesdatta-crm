@@ -182,7 +182,7 @@ function createDealCard(deal) {
       </div>
     ` : ''}
     <div class="deal-card-footer">
-      <div class="deal-value ${!deal.value ? 'zero'}">${deal.value ? formatCurrency(deal.value, deal.currency) : 'Sin valor'}</div>
+      <div class="deal-value ${!deal.value ? 'zero' : ''}">${deal.value ? formatCurrency(deal.value, deal.currency) : 'Sin valor'}</div>
       ${deal.expected_close ? `<div class="deal-date">${formatDate(deal.expected_close)}</div>` : ''}
     </div>
   `;
