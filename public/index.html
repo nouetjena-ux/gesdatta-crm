@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CRM Gesdatta</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">G</div>
+      <span class="logo-text">Gesdatta CRM</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="#" class="nav-item active" data-view="pipeline">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        <span>Pipeline</span>
+      </a>
+      <a href="#" class="nav-item" data-view="contacts">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span>Contactos</span>
+      </a>
+      <a href="#" class="nav-item" data-view="inventory">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+        <span>Inventario</span>
+      </a>
+      <a href="#" class="nav-item" data-view="dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        <span>Dashboard</span>
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-avatar">JN</div>
+      <span class="user-name">Jena</span>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main">
+    <!-- TOP BAR -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <h1 class="view-title" id="viewTitle">Pipeline</h1>
+      </div>
+      <div class="topbar-right">
+        <div class="search-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="text" id="searchInput" placeholder="Buscar..." />
+        </div>
+        <button class="btn-primary" id="btnAddDeal">+ Nuevo Deal</button>
+        <button class="btn-secondary" id="btnAddContact">+ Contacto</button>
+        <button class="btn-secondary" id="btnAddProduct" style="display:none">+ Producto</button>
+        <button class="btn-primary" id="btnAddMovement" style="display:none">+ Movimiento</button>
+      </div>
+    </header>
+
+    <!-- PIPELINE VIEW -->
+    <div id="view-pipeline" class="view active">
+      <div class="pipeline-board" id="pipelineBoard"></div>
+    </div>
+
+    <!-- CONTACTS VIEW -->
+    <div id="view-contacts" class="view">
+      <div class="contacts-grid" id="contactsGrid"></div>
+    </div>
+
+    <!-- INVENTORY VIEW -->
+    <div id="view-inventory" class="view">
+      <div class="inventory-layout" id="inventoryLayout"></div>
+    </div>
+
+    <!-- DASHBOARD VIEW -->
+    <div id="view-dashboard" class="view">
+      <div class="dashboard-grid" id="dashboardGrid"></div>
+    </div>
+  </main>
+
+  <!-- DEAL MODAL -->
+  <div class="modal-overlay" id="dealModal">
+    <div class="modal modal-large">
+      <div class="modal-header">
+        <h2 id="dealModalTitle">Nuevo Deal</h2>
+        <button class="modal-close" id="closeDealModal">&times;</button>
+      </div>
+      <div class="modal-body deal-detail">
+        <div class="deal-main">
+          <div class="form-group">
+            <label>Título del Deal</label>
+            <input type="text" id="dealTitle" placeholder="Ej: Venta producto XYZ" />
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Valor</label>
+              <input type="number" id="dealValue" placeholder="0" />
+            </div>
+            <div class="form-group">
+              <label>Moneda</label>
+              <select id="dealCurrency">
+                <option value="ARS">ARS</option>
+                <option value="USD">USD</option>
+                <option value="EUR">EUR</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Etapa</label>
+            <select id="dealStage"></select>
+          </div>
+          <div class="form-group">
+            <label>Contacto</label>
+            <select id="dealContact">
+              <option value="">— Sin contacto —</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Cierre estimado</label>
+            <input type="date" id="dealClose" />
+          </div>
+          <div class="form-group">
+            <label>Notas</label>
+            <textarea id="dealNotes" rows="3" placeholder="Observaciones..."></textarea>
+          </div>
+
+          <!-- Gesdatta link -->
+          <div class="gesdatta-section">
+            <div class="gesdatta-badge">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              Integración Gesdatta
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>ID Factura Gesdatta</label>
+                <input type="text" id="dealGesdattaId" placeholder="Ej: FAC-0001" />
+              </div>
+              <div class="form-group">
+                <label>N° Factura</label>
+                <input type="text" id="dealGesdattaNum" placeholder="0001-00000001" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="deal-sidebar">
+          <div class="activity-section">
+            <h3>Actividad</h3>
+            <div class="activity-input">
+              <textarea id="activityInput" placeholder="Agregar nota o actividad..." rows="2"></textarea>
+              <button class="btn-primary btn-sm" id="btnAddActivity">Agregar</button>
+            </div>
+            <div class="activity-list" id="activityList"></div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-danger" id="btnDeleteDeal" style="display:none">Eliminar</button>
+        <div class="modal-footer-right">
+          <button class="btn-secondary" id="cancelDealModal">Cancelar</button>
+          <button class="btn-primary" id="saveDeal">Guardar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTACT MODAL -->
+  <div class="modal-overlay" id="contactModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="contactModalTitle">Nuevo Contacto</h2>
+        <button class="modal-close" id="closeContactModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Nombre *</label>
+          <input type="text" id="contactName" placeholder="Juan García" />
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="contactEmail" placeholder="juan@empresa.com" />
+        </div>
+        <div class="form-group">
+          <label>Teléfono</label>
+          <input type="tel" id="contactPhone" placeholder="+54 9 11 1234-5678" />
+        </div>
+        <div class="form-group">
+          <label>Empresa</label>
+          <input type="text" id="contactCompany" placeholder="Empresa S.A." />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-danger" id="btnDeleteContact" style="display:none">Eliminar</button>
+        <div class="modal-footer-right">
+          <button class="btn-secondary" id="cancelContactModal">Cancelar</button>
+          <button class="btn-primary" id="saveContact">Guardar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRODUCT MODAL -->
+  <div class="modal-overlay" id="productModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="productModalTitle">Nuevo Producto</h2>
+        <button class="modal-close" id="closeProductModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Nombre *</label>
+          <input type="text" id="productName" placeholder="Ej: Radiador 500 Urbano" />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>SKU / Código</label>
+            <input type="text" id="productSku" placeholder="Ej: O-500-URBANO" />
+          </div>
+          <div class="form-group">
+            <label>Unidad</label>
+            <select id="productUnit">
+              <option value="unidad">Unidad</option>
+              <option value="kg">Kg</option>
+              <option value="litro">Litro</option>
+              <option value="metro">Metro</option>
+              <option value="caja">Caja</option>
+              <option value="par">Par</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Precio (ARS)</label>
+            <input type="number" id="productPrice" placeholder="0" />
+          </div>
+          <div class="form-group">
+            <label>Stock mínimo</label>
+            <input type="number" id="productStockMin" placeholder="0" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Descripción</label>
+          <textarea id="productDescription" rows="2" placeholder="Descripción opcional..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-danger" id="btnDeleteProduct" style="display:none">Eliminar</button>
+        <div class="modal-footer-right">
+          <button class="btn-secondary" id="cancelProductModal">Cancelar</button>
+          <button class="btn-primary" id="saveProduct">Guardar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MOVEMENT MODAL -->
+  <div class="modal-overlay" id="movementModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Registrar Movimiento</h2>
+        <button class="modal-close" id="closeMovementModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="mov-type-selector">
+          <button class="mov-type-btn active" data-type="entrada">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+            Entrada de Mercadería
+          </button>
+          <button class="mov-type-btn" data-type="salida">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+            Salida de Mercadería
+          </button>
+        </div>
+        <input type="hidden" id="movType" value="entrada" />
+        <div class="form-group">
+          <label>Producto *</label>
+          <select id="movProduct">
+            <option value="">— Seleccionar producto —</option>
+          </select>
+        </div>
+        <div class="mov-stock-info" id="movStockInfo" style="display:none">
+          <span class="stock-chip">Stock actual: <strong id="movStockActual">0</strong></span>
+        </div>
+        <div class="form-group">
+          <label>Cantidad *</label>
+          <input type="number" id="movQuantity" placeholder="0" min="1" />
+        </div>
+        <div class="form-group">
+          <label>Motivo</label>
+          <select id="movReason">
+            <option value="">— Sin motivo —</option>
+            <option value="compra">Compra a proveedor</option>
+            <option value="devolucion_cliente">Devolución de cliente</option>
+            <option value="ajuste_positivo">Ajuste de inventario (+)</option>
+            <option value="venta">Venta</option>
+            <option value="devolucion_proveedor">Devolución a proveedor</option>
+            <option value="ajuste_negativo">Ajuste de inventario (-)</option>
+            <option value="perdida">Pérdida / Rotura</option>
+            <option value="otro">Otro</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Referencia (N° factura, remito, etc.)</label>
+          <input type="text" id="movReference" placeholder="Ej: FAC-0001" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <div></div>
+        <div class="modal-footer-right">
+          <button class="btn-secondary" id="cancelMovementModal">Cancelar</button>
+          <button class="btn-primary" id="saveMovement">Registrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

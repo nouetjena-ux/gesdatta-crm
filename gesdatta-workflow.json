@@ -1,0 +1,189 @@
+{
+  "name": "Gesdatta → CRM: Sincronización de Facturas",
+  "nodes": [
+    {
+      "id": "webhook-gesdatta",
+      "name": "Webhook Gesdatta",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [200, 300],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "gesdatta-factura",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "notes": "Gesdatta debe enviar un POST a esta URL cuando emite una factura"
+    },
+    {
+      "id": "extract-data",
+      "name": "Extraer Datos Factura",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [440, 300],
+      "parameters": {
+        "mode": "manual",
+        "duplicateItem": false,
+        "fields": {
+          "values": [
+            {
+              "name": "invoice_id",
+              "type": "string",
+              "value": "={{ $json.body.id || $json.body.invoice_id || $json.body.factura_id }}"
+            },
+            {
+              "name": "invoice_number",
+              "type": "string",
+              "value": "={{ $json.body.numero || $json.body.invoice_number || $json.body.numero_comprobante }}"
+            },
+            {
+              "name": "client_name",
+              "type": "string",
+              "value": "={{ $json.body.cliente?.nombre || $json.body.client_name || $json.body.razon_social }}"
+            },
+            {
+              "name": "client_email",
+              "type": "string",
+              "value": "={{ $json.body.cliente?.email || $json.body.client_email || '' }}"
+            },
+            {
+              "name": "total",
+              "type": "number",
+              "value": "={{ $json.body.total || $json.body.importe_total || 0 }}"
+            },
+            {
+              "name": "items",
+              "type": "array",
+              "value": "={{ $json.body.items || $json.body.detalle || [] }}"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "validate-invoice",
+      "name": "Validar Factura",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [680, 300],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "check-invoice-id",
+              "leftValue": "={{ $json.invoice_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "send-to-crm",
+      "name": "Enviar al CRM",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [920, 200],
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:3456/api/gesdatta/invoice",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"invoice_id\": \"{{ $json.invoice_id }}\",\n  \"invoice_number\": \"{{ $json.invoice_number }}\",\n  \"client_name\": \"{{ $json.client_name }}\",\n  \"client_email\": \"{{ $json.client_email }}\",\n  \"total\": {{ $json.total }},\n  \"items\": {{ JSON.stringify($json.items) }}\n}",
+        "options": {
+          "timeout": 10000
+        }
+      }
+    },
+    {
+      "id": "respond-ok",
+      "name": "Respuesta OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1160, 200],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ ok: true, deal_id: $json.deal_id, action: $json.action }) }}",
+        "options": {
+          "responseCode": 200
+        }
+      }
+    },
+    {
+      "id": "respond-error",
+      "name": "Respuesta Error",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [920, 440],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={ \"error\": \"invoice_id requerido\" }",
+        "options": {
+          "responseCode": 400
+        }
+      }
+    },
+    {
+      "id": "notify-slack",
+      "name": "Notificar (Opcional)",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [1160, 340],
+      "parameters": {},
+      "notes": "Reemplazar con Slack/Email/WhatsApp para notificar cuando llega una factura de Gesdatta"
+    }
+  ],
+  "connections": {
+    "Webhook Gesdatta": {
+      "main": [
+        [{ "node": "Extraer Datos Factura", "type": "main", "index": 0 }]
+      ]
+    },
+    "Extraer Datos Factura": {
+      "main": [
+        [{ "node": "Validar Factura", "type": "main", "index": 0 }]
+      ]
+    },
+    "Validar Factura": {
+      "main": [
+        [{ "node": "Enviar al CRM", "type": "main", "index": 0 }],
+        [{ "node": "Respuesta Error", "type": "main", "index": 0 }]
+      ]
+    },
+    "Enviar al CRM": {
+      "main": [
+        [
+          { "node": "Respuesta OK", "type": "main", "index": 0 },
+          { "node": "Notificar (Opcional)", "type": "main", "index": 0 }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all"
+  }
+}
