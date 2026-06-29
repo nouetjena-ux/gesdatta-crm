@@ -1057,6 +1057,155 @@ body {
   font-weight: 600;
 }
 
+/* ─── SPECS / ATRIBUTOS ─────────────────────────────────────────────────── */
+.specs-section {
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+}
+
+.specs-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.specs-title {
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text2);
+}
+
+.btn-add-spec {
+  background: var(--primary-light);
+  border: 1px solid rgba(108,71,255,0.25);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--primary);
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s;
+}
+
+.btn-add-spec:hover { background: var(--primary); color: #fff; }
+
+.specs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.spec-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.spec-row input {
+  background: var(--bg-white);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 7px 10px;
+  font-size: 13px;
+  color: var(--text);
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.15s;
+  flex: 1;
+}
+
+.spec-row input:first-child { max-width: 140px; flex: 0 0 140px; font-weight: 600; }
+.spec-row input:focus { border-color: var(--primary); }
+
+.spec-row input::placeholder { color: var(--text3); font-weight: 400; }
+
+.spec-delete {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text3);
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+
+.spec-delete:hover { color: var(--danger); background: var(--danger-light); }
+.spec-delete svg { width: 14px; height: 14px; }
+
+.specs-empty {
+  font-size: 12.5px;
+  color: var(--text3);
+  text-align: center;
+  padding: 8px 0;
+  font-weight: 500;
+}
+
+/* Chips de specs en la lista de productos */
+.product-specs-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 5px;
+}
+
+.spec-chip {
+  background: var(--primary-light);
+  border: 1px solid rgba(108,71,255,0.18);
+  border-radius: 5px;
+  padding: 2px 7px;
+  font-size: 10.5px;
+  color: var(--text2);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.spec-chip strong { color: var(--primary); font-weight: 700; }
+
+/* Panel de specs cuando se selecciona un producto */
+.product-specs-panel {
+  padding: 10px 14px;
+  border-top: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.product-specs-panel-title {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text3);
+  margin-bottom: 8px;
+}
+
+.spec-table {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 10px;
+}
+
+.spec-table-key {
+  font-size: 12px;
+  color: var(--text3);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.spec-table-val {
+  font-size: 12px;
+  color: var(--text);
+  font-weight: 500;
+}
+
 /* ─── SCROLLBAR ─────────────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }

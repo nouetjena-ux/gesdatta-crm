@@ -448,6 +448,9 @@ function setupModals() {
     toast('Actividad agregada', 'success');
   });
 
+  // Specs
+  document.getElementById('btnAddSpec').addEventListener('click', () => addSpecRow());
+
   // Product modal
   document.getElementById('closeProductModal').addEventListener('click', () => document.getElementById('productModal').classList.remove('open'));
   document.getElementById('cancelProductModal').addEventListener('click', () => document.getElementById('productModal').classList.remove('open'));
@@ -608,6 +611,7 @@ async function renderInventory() {
   const layout = document.getElementById('inventoryLayout');
   await loadProducts();
 
+  state.selectedProductId = null;
   layout.innerHTML = `
     <div class="products-panel">
       <div class="products-panel-header">
@@ -644,12 +648,17 @@ function renderProductsList() {
     const stock = p.stock_actual || 0;
     const stockClass = stock === 0 ? 'zero' : stock <= (p.stock_minimo || 0) ? 'low' : 'ok';
     const isSelected = p.id === state.selectedProductId;
+    const attrs = p.attributes || [];
+    const chipsHtml = attrs.length > 0
+      ? `<div class="product-specs-chips">${attrs.slice(0, 4).map(a => `<span class="spec-chip"><strong>${escapeHtml(a.key)}</strong> ${escapeHtml(a.value)}</span>`).join('')}${attrs.length > 4 ? `<span class="spec-chip">+${attrs.length - 4} más</span>` : ''}</div>`
+      : '';
     return `
       <div class="product-row ${isSelected ? 'selected' : ''}" data-product-id="${p.id}">
         <div class="product-row-icon">📦</div>
         <div class="product-row-info">
           <div class="product-row-name">${p.name}</div>
           <div class="product-row-sku">${p.sku || 'Sin SKU'}</div>
+          ${chipsHtml}
         </div>
         <div class="product-row-stock">
           <div class="stock-number ${stockClass}">${stock}</div>
@@ -672,11 +681,38 @@ function renderProductsList() {
       const p = state.products.find(p => p.id === productId);
       document.getElementById('movPanelTitle').textContent = p?.name || 'Movimientos';
       document.getElementById('movPanelSubtitle').textContent = `Stock actual: ${p?.stock_actual || 0} ${p?.unit || 'unid.'}`;
+      renderProductSpecsPanel(p);
       await renderMovementsList(productId);
     });
 
     row.addEventListener('dblclick', () => openProductModal(row.dataset.productId));
   });
+}
+
+function renderProductSpecsPanel(p) {
+  // Remove existing specs panel if any
+  const existing = document.getElementById('productSpecsPanel');
+  if (existing) existing.remove();
+
+  const header = document.querySelector('.movements-panel-header');
+  if (!header || !p) return;
+
+  const attrs = p.attributes || [];
+  if (attrs.length === 0) return;
+
+  const panel = document.createElement('div');
+  panel.id = 'productSpecsPanel';
+  panel.className = 'product-specs-panel';
+  panel.innerHTML = `
+    <div class="product-specs-panel-title">Ficha técnica</div>
+    <div class="spec-table">
+      ${attrs.map(a => `
+        <div class="spec-table-key">${escapeHtml(a.key)}</div>
+        <div class="spec-table-val">${escapeHtml(a.value)}</div>
+      `).join('')}
+    </div>
+  `;
+  header.after(panel);
 }
 
 async function renderMovementsList(productId = null) {
@@ -737,6 +773,7 @@ async function openProductModal(productId = null) {
     document.getElementById('productPrice').value = p.price || '';
     document.getElementById('productStockMin').value = p.stock_minimo || 0;
     document.getElementById('productDescription').value = p.description || '';
+    renderSpecsList(p.attributes || []);
   } else {
     document.getElementById('productModalTitle').textContent = 'Nuevo Producto';
     btnDelete.style.display = 'none';
@@ -746,10 +783,61 @@ async function openProductModal(productId = null) {
     document.getElementById('productPrice').value = '';
     document.getElementById('productStockMin').value = '0';
     document.getElementById('productDescription').value = '';
+    renderSpecsList([]);
   }
 
   modal.classList.add('open');
   document.getElementById('productName').focus();
+}
+
+function renderSpecsList(attrs = []) {
+  const list = document.getElementById('specsList');
+  list.innerHTML = '';
+  if (attrs.length === 0) {
+    list.innerHTML = '<div class="specs-empty">Sin especificaciones. Hacé clic en "+ Agregar campo" para añadir.</div>';
+    return;
+  }
+  attrs.forEach(attr => addSpecRow(attr.key, attr.value));
+}
+
+function addSpecRow(key = '', value = '') {
+  const list = document.getElementById('specsList');
+  // Remove empty state if present
+  const empty = list.querySelector('.specs-empty');
+  if (empty) empty.remove();
+
+  const row = document.createElement('div');
+  row.className = 'spec-row';
+  row.innerHTML = `
+    <input type="text" placeholder="Ej: Potencia" value="${escapeHtml(key)}" />
+    <input type="text" placeholder="Ej: 500W" value="${escapeHtml(value)}" />
+    <button class="spec-delete" type="button" title="Eliminar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+  `;
+  row.querySelector('.spec-delete').addEventListener('click', () => {
+    row.remove();
+    if (list.children.length === 0) {
+      list.innerHTML = '<div class="specs-empty">Sin especificaciones. Hacé clic en "+ Agregar campo" para añadir.</div>';
+    }
+  });
+  list.appendChild(row);
+}
+
+function collectSpecs() {
+  const rows = document.querySelectorAll('#specsList .spec-row');
+  const attrs = [];
+  rows.forEach(row => {
+    const inputs = row.querySelectorAll('input');
+    const key = inputs[0].value.trim();
+    const value = inputs[1].value.trim();
+    if (key) attrs.push({ key, value });
+  });
+  return attrs;
+}
+
+function escapeHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
 async function saveProduct() {
@@ -763,6 +851,7 @@ async function saveProduct() {
     price: parseFloat(document.getElementById('productPrice').value) || 0,
     stock_minimo: parseInt(document.getElementById('productStockMin').value) || 0,
     description: document.getElementById('productDescription').value.trim() || null,
+    attributes: collectSpecs(),
   };
 
   if (state.editingProductId) {
